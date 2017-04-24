@@ -1,0 +1,3 @@
+package: keywatcher
+import:
+- package: github.com/MarinX/keylogger

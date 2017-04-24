@@ -1,0 +1,6 @@
+hash: b9401ce5702c654ea0bcd267f62d63635d09c85346c4f4e3991555c8a02979a8
+updated: 2017-04-24T20:15:03.57669277+03:00
+imports:
+- name: github.com/MarinX/keylogger
+  version: 8da8cc3ff65f3a40d50d76e75392a641e993f595
+testImports: []
