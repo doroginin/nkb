@@ -71,29 +71,34 @@ func main() {
 
 func disableKeys() {
 	if _, err := exec.Command("/bin/sh", "-c", ""+
-		"setkeycodes e047 0"+ // home
-		"setkeycodes e04f 0"+ // end
-		"setkeycodes e049 0"+ // pgup
-		"setkeycodes e051 0"+ // pgdn
-		"setkeycodes e050 0"+ // down
-		"setkeycodes e048 0"+ // up
-		"setkeycodes e04b 0"+ // left
-		"setkeycodes e04d 0", // right
+		"setkeycodes e047 0 &"+ // home
+		"setkeycodes e04f 0 &"+ // end
+		"setkeycodes e049 0 &"+ // pgup
+		"setkeycodes e051 0 &"+ // pgdn
+		"setkeycodes e050 0 &"+ // down
+		"setkeycodes e048 0 &"+ // up
+		"setkeycodes e04b 0 &"+ // left
+		"setkeycodes e04d 0 &", // right
 	).Output(); err != nil {
 		log.Printf("Error during exec command: %s", err.Error())
 	}
 }
 
+func xkbHook() {
+	//disable caps here
+	//enable menu on prtsc
+}
+
 func capsModeOn() {
 	if _, err := exec.Command("/bin/sh", "-c", ""+
-		"setkeycodes 16 104;"+ // u -> pgup
-		"setkeycodes 17 103;"+ // i -> up
-		"setkeycodes 18 109;"+ // o -> pgdn
-		"setkeycodes 23 102;"+ // h -> home
-		"setkeycodes 24 105;"+ // j -> left
-		"setkeycodes 25 108;"+ // k -> down
-		"setkeycodes 26 106;"+ // l -> right
-		"setkeycodes 27 107;", // ; -> end
+		"setkeycodes 16 104 &"+ // u -> pgup
+		"setkeycodes 17 103 &"+ // i -> up
+		"setkeycodes 18 109 &"+ // o -> pgdn
+		"setkeycodes 23 102 &"+ // h -> home
+		"setkeycodes 24 105 &"+ // j -> left
+		"setkeycodes 25 108 &"+ // k -> down
+		"setkeycodes 26 106 &"+ // l -> right
+		"setkeycodes 27 107 &", // ; -> end
 	).Output(); err != nil {
 		log.Printf("Error during exec command: %s", err.Error())
 	}
@@ -101,14 +106,14 @@ func capsModeOn() {
 
 func capsModeOff() {
 	if _, err := exec.Command("/bin/sh", "-c", ""+
-		"setkeycodes 16 22;"+ // u
-		"setkeycodes 17 23;"+ // i
-		"setkeycodes 18 24;"+ // o
-		"setkeycodes 23 35;"+ // h
-		"setkeycodes 24 36;"+ // j
-		"setkeycodes 25 37;"+ // k
-		"setkeycodes 26 38;"+ // l
-		"setkeycodes 27 39;", // ;
+		"setkeycodes 16 22 &"+ // u
+		"setkeycodes 17 23 &"+ // i
+		"setkeycodes 18 24 &"+ // o
+		"setkeycodes 23 35 &"+ // h
+		"setkeycodes 24 36 &"+ // j
+		"setkeycodes 25 37 &"+ // k
+		"setkeycodes 26 38 &"+ // l
+		"setkeycodes 27 39 &", // ;
 	).Output(); err != nil {
 		log.Printf("Error during exec command: %s", err.Error())
 	}
