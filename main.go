@@ -78,7 +78,8 @@ func disableKeys() {
 		"setkeycodes e050 0 &"+ // down
 		"setkeycodes e048 0 &"+ // up
 		"setkeycodes e04b 0 &"+ // left
-		"setkeycodes e04d 0 &", // right
+		"setkeycodes e04d 0 &"+ // right
+		"setkeycodes e053 0 &", // delete
 	).Output(); err != nil {
 		log.Printf("Error during exec command: %s", err.Error())
 	}
@@ -98,7 +99,10 @@ func capsModeOn() {
 		"setkeycodes 24 105 &"+ // j -> left
 		"setkeycodes 25 108 &"+ // k -> down
 		"setkeycodes 26 106 &"+ // l -> right
-		"setkeycodes 27 107 &", // ; -> end
+		"setkeycodes 27 107 &"+ // ; -> end
+		"setkeycodes 21  42 &"+ // f -> shift
+		"setkeycodes 20  29 &"+ // d -> ctrl
+		"setkeycodes 0e 111 &", // bksp -> del
 	).Output(); err != nil {
 		log.Printf("Error during exec command: %s", err.Error())
 	}
@@ -113,7 +117,10 @@ func capsModeOff() {
 		"setkeycodes 24 36 &"+ // j
 		"setkeycodes 25 37 &"+ // k
 		"setkeycodes 26 38 &"+ // l
-		"setkeycodes 27 39 &", // ;
+		"setkeycodes 27 39 &"+ // ;
+		"setkeycodes 21 33 &"+ // f
+		"setkeycodes 20 32 &"+ // d
+		"setkeycodes 0e 14 &", // bksp
 	).Output(); err != nil {
 		log.Printf("Error during exec command: %s", err.Error())
 	}
