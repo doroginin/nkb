@@ -4,14 +4,25 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
+	"strconv"
 
 	"github.com/MarinX/keylogger"
 )
 
+const (
+	KEY_0 = iota + 500
+	KEY_1
+	KEY_2
+	KEY_3
+	KEY_4
+	KEY_5
+)
+
 func main() {
-	var device = flag.Int("d", -1, "Listen device with id")
-	flag.Parse()
+	cmd := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	var device = cmd.Int("d", 3, "Listen device with id")
 
 	devices, err := keylogger.NewDevices()
 	if err != nil {
@@ -19,8 +30,10 @@ func main() {
 		return
 	}
 
-	if *device < 0 {
-		flag.Usage()
+	if err := cmd.Parse(os.Args[1:]); err == flag.ErrHelp || *device < 0 || len(devices) <= *device {
+		if err != flag.ErrHelp {
+			cmd.Usage()
+		}
 		fmt.Println("\nAvailable devices: ")
 		for _, val := range devices {
 			fmt.Println("Id: ", val.Id, "Device: ", val.Name)
@@ -37,32 +50,28 @@ func main() {
 
 	disableKeys()
 
-	var capsMode bool
 	var capsPressed bool
 	for i := range in {
 		if i.Type == keylogger.EV_KEY {
 			//fmt.Printf("key:\t%s,\tcode:\t%d,\tevent:\t%d\n", i.KeyString(), i.Code, i.Value)
-			if uint(i.Code) == 58 { // CAPS LOCK
+			if uint(i.Code) == KEY_0 { // CAPS LOCK
 				if int(i.Value) == 1 { // Press
 					capsPressed = true
-					if !capsMode { // Turn on caps mode if it was disabled
-						capsMode = true
-						capsModeOn()
-					} else {
-						capsMode = false
-					}
+					capsModeOn()
 				}
 				if int(i.Value) == 0 { // Release
 					capsPressed = false
-					if !capsMode { // Turn off caps mode only if no key was pressed with caps
-						capsModeOff()
-					}
+					capsModeOff()
 				}
-			} else {
-				// if any key press during caps lock pressing then it's caps modifier mode
-				// and we need to switch caps mode off after caps will be released
-				if capsMode && capsPressed {
-					capsMode = false
+			} else if capsPressed {
+				if uint(i.Code) == KEY_1 && int(i.Value) == 1 {
+					send("ctrl+c")
+				}
+				if uint(i.Code) == KEY_2 && int(i.Value) == 1 {
+					send("ctrl+v")
+				}
+				if uint(i.Code) == KEY_3 && int(i.Value) == 1 {
+					send("ctrl+b")
 				}
 			}
 		}
@@ -70,7 +79,10 @@ func main() {
 }
 
 func disableKeys() {
-	if _, err := exec.Command("/bin/sh", "-c", ""+
+	start(""+
+		"setkeycodes 3a "+strconv.Itoa(KEY_0)+" &"+ // capslock
+		//"setkeycodes e02ae037 "+strconv.Itoa(KEY_4)+" &"+ // prtsc
+
 		"setkeycodes e047 0 &"+ // home
 		"setkeycodes e04f 0 &"+ // end
 		"setkeycodes e049 0 &"+ // pgup
@@ -80,18 +92,15 @@ func disableKeys() {
 		"setkeycodes e04b 0 &"+ // left
 		"setkeycodes e04d 0 &"+ // right
 		"setkeycodes e053 0 &", // delete
-	).Output(); err != nil {
-		log.Printf("Error during exec command: %s", err.Error())
-	}
-}
-
-func xkbHook() {
-	//disable caps here
-	//enable menu on prtsc
+	)
 }
 
 func capsModeOn() {
-	if _, err := exec.Command("/bin/sh", "-c", ""+
+	start(""+
+		"setkeycodes 15 "+strconv.Itoa(KEY_1)+" &"+ // y
+		"setkeycodes 19 "+strconv.Itoa(KEY_2)+" &"+ // p
+		"setkeycodes 33 "+strconv.Itoa(KEY_3)+" &"+ // ,
+
 		"setkeycodes 16 104 &"+ // u -> pgup
 		"setkeycodes 17 103 &"+ // i -> up
 		"setkeycodes 18 109 &"+ // o -> pgdn
@@ -103,13 +112,15 @@ func capsModeOn() {
 		"setkeycodes 21  42 &"+ // f -> shift
 		"setkeycodes 20  29 &"+ // d -> ctrl
 		"setkeycodes 0e 111 &", // bksp -> del
-	).Output(); err != nil {
-		log.Printf("Error during exec command: %s", err.Error())
-	}
+	)
 }
 
 func capsModeOff() {
-	if _, err := exec.Command("/bin/sh", "-c", ""+
+	start(""+
+		"setkeycodes 15 21 &"+ // y
+		"setkeycodes 19 25 &"+ // p
+		"setkeycodes 33 51 &"+ // ,
+
 		"setkeycodes 16 22 &"+ // u
 		"setkeycodes 17 23 &"+ // i
 		"setkeycodes 18 24 &"+ // o
@@ -121,7 +132,15 @@ func capsModeOff() {
 		"setkeycodes 21 33 &"+ // f
 		"setkeycodes 20 32 &"+ // d
 		"setkeycodes 0e 14 &", // bksp
-	).Output(); err != nil {
+	)
+}
+
+func send(keys string) {
+	start("xdotool key "+keys)
+}
+
+func start(cmd string) {
+	if _, err := exec.Command("/bin/sh", "-c", cmd).Output(); err != nil {
 		log.Printf("Error during exec command: %s", err.Error())
 	}
 }
