@@ -6,7 +6,9 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strconv"
+	"syscall"
 
 	"github.com/MarinX/keylogger"
 )
@@ -49,31 +51,51 @@ func main() {
 	}
 
 	disableKeys()
+	defer restoreKeys()
+
+	quit := make(chan os.Signal)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	var capsPressed bool
-	for i := range in {
-		if i.Type == keylogger.EV_KEY {
-			//fmt.Printf("key:\t%s,\tcode:\t%d,\tevent:\t%d\n", i.KeyString(), i.Code, i.Value)
-			if uint(i.Code) == KEY_0 { // CAPS LOCK
-				if int(i.Value) == 1 { // Press
-					capsPressed = true
-					capsModeOn()
-				}
-				if int(i.Value) == 0 { // Release
-					capsPressed = false
-					capsModeOff()
-				}
-			} else if capsPressed {
-				if uint(i.Code) == KEY_1 && int(i.Value) == 1 {
-					send("ctrl+c")
-				}
-				if uint(i.Code) == KEY_2 && int(i.Value) == 1 {
-					send("ctrl+v")
-				}
-				if uint(i.Code) == KEY_3 && int(i.Value) == 1 {
-					send("ctrl+b")
+	var quickCapsMode bool
+	var capsMode bool
+	//var capsMode2 bool
+
+	for {
+		select {
+		case i := <- in:
+			if i.Type == keylogger.EV_KEY {
+				//fmt.Printf("key:\t%s,\tcode:\t%d,\tevent:\t%d\n", i.KeyString(), i.Code, i.Value)
+				if uint(i.Code) == KEY_0 { // CAPS LOCK
+					if int(i.Value) == 1 && !capsMode { // Press
+						capsPressed = true
+						quickCapsMode = false
+						capsMode = true
+						capsModeOn()
+					}
+					if int(i.Value) == 0 && quickCapsMode { // Release
+						capsPressed = false
+						capsMode = false
+						capsModeOff()
+					}
+				} else if capsPressed {
+					quickCapsMode = true
+					if uint(i.Code) == KEY_1 && int(i.Value) == 1 {
+						send("ctrl+c")
+					}
+					if uint(i.Code) == KEY_2 && int(i.Value) == 1 {
+						send("ctrl+v")
+					}
+					//if uint(i.Code) == 555 && int(i.Value) == 1 {
+					//	send("ctrl")
+					//}
+					//if uint(i.Code) == KEY_3 && int(i.Value) == 1 {
+					//	send("ctrl+b")
+					//}
 				}
 			}
+		case <-quit:
+			return
 		}
 	}
 }
@@ -83,15 +105,34 @@ func disableKeys() {
 		"setkeycodes 3a "+strconv.Itoa(KEY_0)+" &"+ // capslock
 		//"setkeycodes e02ae037 "+strconv.Itoa(KEY_4)+" &"+ // prtsc
 
-		"setkeycodes e047 0 &"+ // home
-		"setkeycodes e04f 0 &"+ // end
-		"setkeycodes e049 0 &"+ // pgup
-		"setkeycodes e051 0 &"+ // pgdn
-		"setkeycodes e050 0 &"+ // down
-		"setkeycodes e048 0 &"+ // up
-		"setkeycodes e04b 0 &"+ // left
-		"setkeycodes e04d 0 &"+ // right
+		//"setkeycodes e047 0 &"+ // home
+		//"setkeycodes e04f 0 &"+ // end
+		//"setkeycodes e049 0 &"+ // pgup
+		//"setkeycodes e051 0 &"+ // pgdn
+		//"setkeycodes e050 0 &"+ // down
+		//"setkeycodes e048 0 &"+ // up
+		//"setkeycodes e04b 0 &"+ // left
+		//"setkeycodes e04d 0 &"+ // right
+
 		"setkeycodes e053 0 &", // delete
+	)
+}
+
+func restoreKeys() {
+	start(""+
+		"setkeycodes 3a 58 &"+ // capslock
+		//"setkeycodes e02ae037 "+strconv.Itoa(KEY_4)+" &"+ // prtsc
+
+		//"setkeycodes e047 0 &"+ // home
+		//"setkeycodes e04f 0 &"+ // end
+		//"setkeycodes e049 0 &"+ // pgup
+		//"setkeycodes e051 0 &"+ // pgdn
+		//"setkeycodes e050 0 &"+ // down
+		//"setkeycodes e048 0 &"+ // up
+		//"setkeycodes e04b 0 &"+ // left
+		//"setkeycodes e04d 0 &"+ // right
+
+		"setkeycodes e053 111 &", // delete
 	)
 }
 
@@ -99,7 +140,7 @@ func capsModeOn() {
 	start(""+
 		"setkeycodes 15 "+strconv.Itoa(KEY_1)+" &"+ // y
 		"setkeycodes 19 "+strconv.Itoa(KEY_2)+" &"+ // p
-		"setkeycodes 33 "+strconv.Itoa(KEY_3)+" &"+ // ,
+		"setkeycodes 33 99 &"+ // , -> menu
 
 		"setkeycodes 16 104 &"+ // u -> pgup
 		"setkeycodes 17 103 &"+ // i -> up
@@ -109,8 +150,10 @@ func capsModeOn() {
 		"setkeycodes 25 108 &"+ // k -> down
 		"setkeycodes 26 106 &"+ // l -> right
 		"setkeycodes 27 107 &"+ // ; -> end
-		"setkeycodes 21  42 &"+ // f -> shift
+
 		"setkeycodes 20  29 &"+ // d -> ctrl
+		"setkeycodes 21  42 &"+ // f -> shift
+
 		"setkeycodes 0e 111 &", // bksp -> del
 	)
 }
@@ -129,8 +172,10 @@ func capsModeOff() {
 		"setkeycodes 25 37 &"+ // k
 		"setkeycodes 26 38 &"+ // l
 		"setkeycodes 27 39 &"+ // ;
-		"setkeycodes 21 33 &"+ // f
+
 		"setkeycodes 20 32 &"+ // d
+		"setkeycodes 21 33 &"+ // f
+
 		"setkeycodes 0e 14 &", // bksp
 	)
 }
