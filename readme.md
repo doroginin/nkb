@@ -4,6 +4,7 @@ Description
 # Install
 
 ```bash
-git clone https://github.com/rilinor/keywatcher.git
+go get -u github.com/rilinor/keywatcher
+cd $GOPATH/src/github.com/rilinor/keywatcher
 make
 ```
