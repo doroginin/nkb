@@ -1,0 +1,10 @@
+[Unit]
+Description=Keywatcher Service
+
+[Service]
+Type=simple
+ExecStart=/home/dd/go/bin/keywatcher
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
