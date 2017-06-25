@@ -9,7 +9,7 @@ ifneq ($(UID),0)
 	@exit 1
 endif
 	@echo "Install 'keywatcher.service'"
-	@cp ./keywatcher.service /etc/systemd/system/keywatcher.service
-	systemctl daemon-reload
 	${GO} install
+	@cp ./keywatcher.service /etc/systemd/system/keywatcher.service
+	systemctl enable keywatcher
 	sudo service keywatcher restart
