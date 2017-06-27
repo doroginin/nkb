@@ -21,7 +21,7 @@ const (
 var debug bool
 var capsMode bool
 var capsMode2 bool
-var key3Pressed bool
+var key1Pressed bool
 var pressedButtonsCount int
 var capsPressed bool
 
@@ -73,9 +73,7 @@ func main() {
 			case KEY_0: // CAPS LOCK
 				if int(i.Value) == 1 {
 					capsPressed = true
-					if !capsMode {
-						capsModeOn()
-					}
+					capsModeOn()
 				}
 				if int(i.Value) == 0 {
 					capsPressed = false
@@ -86,11 +84,13 @@ func main() {
 				}
 			case KEY_1:
 				if int(i.Value) == 1 {
-					key3Pressed = true
-					capsMode2On()
+					key1Pressed = true
+					if pressedButtonsCount <= 0 {
+						capsMode2On()
+					}
 				}
 				if int(i.Value) == 0 {
-					key3Pressed = false
+					key1Pressed = false
 					if pressedButtonsCount <= 0 {
 						pressedButtonsCount = 0
 						capsMode2Off()
@@ -104,18 +104,18 @@ func main() {
 					pressedButtonsCount--
 					if pressedButtonsCount <= 0 {
 						pressedButtonsCount = 0
-						if !key3Pressed {
+						if capsMode2 && !key1Pressed {
 							capsMode2Off()
 						}
-						if !capsPressed {
+						if capsMode && !capsPressed {
 							capsModeOff()
 						}
 					}
 				}
 			}
 			if debug {
-				fmt.Printf("capsMode: %t, capsMode2: %t, key3Pressed: %t, pressedButtonsCount: %d," +
-					" capsPressed: %t'\n", capsMode, capsMode2, key3Pressed, pressedButtonsCount, capsPressed)
+				fmt.Printf("capsMode: %t, capsMode2: %t, key1Pressed: %t, pressedButtonsCount: %d," +
+					" capsPressed: %t'\n", capsMode, capsMode2, key1Pressed, pressedButtonsCount, capsPressed)
 			}
 
 		case <-quit:
