@@ -11,6 +11,7 @@ import (
 	"syscall"
 
 	"github.com/MarinX/keylogger"
+	"time"
 )
 
 const (
@@ -24,6 +25,7 @@ var capsMode2 bool
 var key1Pressed bool
 var pressedButtonsCount int
 var capsPressed bool
+var lastCapsPressed time.Time
 
 func main() {
 	debug = false
@@ -67,55 +69,84 @@ func main() {
 				continue
 			}
 			if debug {
-				fmt.Printf("key:\t%s,\tcode:\t%d,\tevent:\t%d\n", i.KeyString(), i.Code, i.Value)
+				fmt.Printf("key: %s, code: %d, event: %d\n", i.KeyString(), i.Code, i.Value)
 			}
+
+			// @todo remove this workaround
+			if pressedButtonsCount < 0 {
+				fmt.Print("keywatcher: workaround [pressedButtonsCount < 0]\n")
+				pressedButtonsCount = 0
+			}
+
 			switch uint(i.Code) {
 			case KEY_0: // CAPS LOCK
 				if int(i.Value) == 1 {
+
+					// @todo remove this workaround
+					if time.Since(lastCapsPressed) < 300 * time.Millisecond {
+						fmt.Print("keywatcher: workaround [double caps pressed]\n")
+						pressedButtonsCount = 0
+					}
+
+					lastCapsPressed = time.Now()
 					capsPressed = true
-					capsModeOn()
+					if pressedButtonsCount == 0 {
+						capsModeOn()
+					}
 				}
 				if int(i.Value) == 0 {
 					capsPressed = false
-					if pressedButtonsCount <= 0 {
-						pressedButtonsCount = 0
+					if pressedButtonsCount == 0 {
 						capsModeOff()
 					}
 				}
 			case KEY_1:
 				if int(i.Value) == 1 {
 					key1Pressed = true
-					if pressedButtonsCount <= 0 {
+					if pressedButtonsCount == 0 {
 						capsMode2On()
 					}
 				}
 				if int(i.Value) == 0 {
 					key1Pressed = false
-					if pressedButtonsCount <= 0 {
-						pressedButtonsCount = 0
-						capsMode2Off()
+					if pressedButtonsCount == 0 {
+						capsModeOn()
 					}
 				}
-			case 103, 105, 106, 108, 102, 104, 107, 109, 111:
+			case
+				// arrows
+				103, 105, 106, 108,
+				//home, end, pgup, pgdn
+				102, 104, 107, 109,
+				// delete, bksp
+				111, 14,
+				// a, s, d, w
+				30,	17,	32,	31,
+				// alt
+				56:
 				if int(i.Value) == 1 {
 					pressedButtonsCount++
 				}
 				if int(i.Value) == 0 {
 					pressedButtonsCount--
-					if pressedButtonsCount <= 0 {
-						pressedButtonsCount = 0
-						if capsMode2 && !key1Pressed {
-							capsMode2Off()
-						}
-						if capsMode && !capsPressed {
+					if pressedButtonsCount == 0 {
+						if capsMode2 && !key1Pressed && !capsPressed ||
+							capsMode && !capsPressed {
 							capsModeOff()
+						}
+						if capsPressed {
+							if key1Pressed {
+								capsMode2On()
+							} else {
+								capsModeOn()
+							}
 						}
 					}
 				}
 			}
 			if debug {
-				fmt.Printf("capsMode: %t, capsMode2: %t, key1Pressed: %t, pressedButtonsCount: %d," +
-					" capsPressed: %t'\n", capsMode, capsMode2, key1Pressed, pressedButtonsCount, capsPressed)
+				fmt.Printf("capsPressed: %t, key1Pressed: %t, capsMode: %t, capsMode2: %t, pressedButtonsCount: %d\n",
+					capsPressed, key1Pressed, capsMode, capsMode2, pressedButtonsCount)
 			}
 
 		case <-quit:
@@ -149,16 +180,17 @@ func capsModeOn() {
 		"")
 }
 
+// disable capsMode and capsMode2
 func capsModeOff() {
 	capsMode = false
 	capsMode2 = false
 	start("" +
-		"setkeycodes 38 56 &" + // alt
-		"setkeycodes 0e 14 &" + // bksp
-		"setkeycodes 1e 30 &" + // a -> left
-		"setkeycodes 11 17 &" + // w -> up
-		"setkeycodes 20 32 &" + // d -> right
-		"setkeycodes 1f 31 &" + // s -> down
+		"setkeycodes 38 56 &" + // restore alt
+		"setkeycodes 0e 14 &" + // restore bksp
+		"setkeycodes 1e 30 &" + // restore a
+		"setkeycodes 11 17 &" + // restore w
+		"setkeycodes 20 32 &" + // restore d
+		"setkeycodes 1f 31 &" + // restore s
 		"")
 }
 
@@ -166,24 +198,13 @@ func capsMode2On() {
 	capsMode = false
 	capsMode2 = true
 	start("" +
+		"setkeycodes 38 " + strconv.Itoa(KEY_1) + " &" + // alt
+		"setkeycodes 0e 111 &" + // bksp -> del
 		"setkeycodes 1e 102 &" + // a -> home
 		"setkeycodes 11 104 &" + // w -> pgup
 		"setkeycodes 20 107 &" + // d -> end
 		"setkeycodes 1f 109 &" + // s -> pgdn
-		"",
-	)
-}
-
-func capsMode2Off() {
-	capsMode = true
-	capsMode2 = false
-	start("" +
-		"setkeycodes 1e 105 &" + // a -> left
-		"setkeycodes 11 103 &" + // w -> up
-		"setkeycodes 20 106 &" + // d -> right
-		"setkeycodes 1f 108 &" + // s -> down
-		"",
-	)
+		"")
 }
 
 func send(keys string) {
