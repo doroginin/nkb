@@ -3,7 +3,10 @@ Description=Keywatcher Service
 
 [Service]
 Type=simple
+
+# add -v option for verbose mode
 ExecStart=/home/dd/go/bin/keywatcher
+
 Restart=always
 
 [Install]
