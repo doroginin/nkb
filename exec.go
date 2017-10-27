@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"os/exec"
 	"fmt"
+	"strings"
 )
 
 func (a *app) enable() {
@@ -58,12 +59,32 @@ func (a *app) capsMode2On() {
 		"wait")
 }
 
+var user string // user who is logged in
+
+func init() {
+	var err error
+	if user, err = sh(`who | grep :0 | grep -oP '^.*?(?=\s)'`); err != nil {
+		fmt.Printf("Error during get logged in user: %s\n", err.Error())
+	} else {
+		user = strings.Trim(user, "\n")
+		fmt.Printf("Logged in user: %s\n", user)
+	}
+}
+
 func (a *app) send(keys string) {
-	a.start("xdotool key " + keys)
+	a.start(`su ` + user + ` -c "export DISPLAY=':0.0'; xdotool key ` + keys + `"`)
 }
 
 func (a *app) start(cmd string) {
-	if _, err := exec.Command("/bin/sh", "-c", cmd).Output(); err != nil {
-		fmt.Printf("Error during exec command: %s", err.Error())
+	if out, err := sh(cmd); err != nil {
+		fmt.Printf("Error during exec command: %s, out: %s\n", err.Error(), out)
+	}
+}
+
+func sh(cmd string) (string, error) {
+	if out, err := exec.Command("/bin/sh", "-c", cmd).Output(); err == nil {
+		return string(out), nil
+	} else {
+		return "", nil
 	}
 }

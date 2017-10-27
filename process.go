@@ -21,8 +21,8 @@ const (
 )
 
 func (a *app) Run() {
-	//a.enable()
-	//defer a.disable()
+	a.enable()
+	defer a.disable()
 
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -41,8 +41,6 @@ func (a *app) Run() {
 			code := uint(i.Code)
 
 			switch code {
-			case 58:
-				a.processCaps0(event)
 			case KEY_0: // CAPS LOCK
 				a.processCaps(event)
 			case KEY_1:
@@ -75,25 +73,11 @@ func (a *app) Run() {
 	}
 }
 
-func (a *app) processCaps0(event int) {
-	if event == EVENT_PRESS {
-		if time.Since(a.state.lastCapsPressed) < 300*time.Millisecond {
-			fmt.Println("double caps pressed => enabling")
-			a.state.pressedButtons = make(map[uint]struct{})
-			a.state.enabled = true
-			a.enable()
-		}
-		a.state.lastCapsPressed = time.Now()
-	}
-}
-
 func (a *app) processCaps(event int) {
 	if event == EVENT_PRESS {
 		if time.Since(a.state.lastCapsPressed) < 300*time.Millisecond {
-			fmt.Println("double caps pressed => disabling")
-			a.state.pressedButtons = make(map[uint]struct{})
-			a.state.enabled = false
-			a.disable()
+			fmt.Println("Toggle Caps_Lock")
+			a.send("Caps_Lock")
 		}
 		a.state.lastCapsPressed = time.Now()
 
