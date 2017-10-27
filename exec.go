@@ -1,4 +1,4 @@
-package keywatcher
+package nkb
 
 import (
 	"strconv"

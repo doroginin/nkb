@@ -8,8 +8,8 @@ ifneq ($(UID),0)
 	@echo "Sorry, you are not root."
 	@exit 1
 endif
-	@echo "Install 'keywatcher.service'"
-	${GO} install ./cmd/keywatcher
-	@cp ./keywatcher.service /etc/systemd/system/keywatcher.service
-	systemctl enable keywatcher
-	sudo service keywatcher restart
+	@echo "Install 'nkb.service'"
+	${GO} install ./cmd/nkb
+	@cp ./nkb.service /etc/systemd/system/nkb.service
+	systemctl enable nkb
+	sudo service nkb restart

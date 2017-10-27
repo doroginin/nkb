@@ -1,11 +1,11 @@
 [Unit]
-Description=Keywatcher Service
+Description=Nuclear Keyboard
 
 [Service]
 Type=simple
 
 # add -v option for verbose mode
-ExecStart=/home/dd/go/bin/keywatcher
+ExecStart=/home/dd/go/bin/nkb
 
 Restart=always
 

@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"keywatcher"
+	"nkb"
 )
 
 func main () {
-	app, err := keywatcher.New()
+	app, err := nuclear_kb.New()
 	if err != nil {
 		fmt.Print(err)
 		return
