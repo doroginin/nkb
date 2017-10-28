@@ -9,7 +9,7 @@ ifneq ($(UID),0)
 	@exit 1
 endif
 	@echo "Install 'nkb.service'"
-	${GO} install ./cmd/nkb
+	${GO} install -v ./cmd/nkb
 	@cp ./nkb.service /etc/systemd/system/nkb.service
 	systemctl enable nkb
 	sudo service nkb restart

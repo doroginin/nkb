@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"nkb"
+	"github.com/rilinor/nkb"
 )
 
 func main () {
-	app, err := nuclear_kb.New()
+	app, err := nkb.New()
 	if err != nil {
 		fmt.Print(err)
 		return
