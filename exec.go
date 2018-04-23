@@ -10,12 +10,16 @@ import (
 func (a *app) enable() {
 	a.start("" +
 		"setkeycodes 3a " + strconv.Itoa(KEY_0) + " &" + // capslock
+		"setkeycodes e049 97 &" + // pgup -> ctrl
+		"setkeycodes e01d 127 &" + // ctrl -> menu
 		"wait")
 }
 
 func (a *app) disable() {
-	a.start("" +
+	a.start( "" +
 		"setkeycodes 3a 58 &" + // capslock
+		"sudo setkeycodes e049 104 &" + // ctrl -> pgup
+		"setkeycodes e01d 97 &" + // ctrl -> menu
 		"wait")
 }
 
@@ -63,7 +67,7 @@ var user string // user who is logged in
 
 func init() {
 	var err error
-	if user, err = sh(`who | grep :0 | grep -oP '^.*?(?=\s)'`); err != nil {
+	if user, err = sh(`who | grep '/dev/tty' | grep -oP '^.*?(?=\s)'`); err != nil {
 		fmt.Printf("Error during get logged in user: %s\n", err.Error())
 	} else {
 		user = strings.Trim(user, "\n")

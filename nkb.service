@@ -5,7 +5,7 @@ Description=Nuclear Keyboard
 Type=simple
 
 # add -v option for verbose mode
-ExecStart=/home/dd/go/bin/nkb
+ExecStart=/home/dd/go/bin/nkb -d 4
 
 Restart=always
 
