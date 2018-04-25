@@ -18,7 +18,7 @@ func (a *app) enable() {
 func (a *app) disable() {
 	a.start( "" +
 		"setkeycodes 3a 58 &" + // capslock
-		"sudo setkeycodes e049 104 &" + // ctrl -> pgup
+		"setkeycodes e049 104 &" + // ctrl -> pgup
 		"setkeycodes e01d 97 &" + // ctrl -> menu
 		"wait")
 }
