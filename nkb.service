@@ -4,6 +4,8 @@ Description=Nuclear Keyboard
 [Service]
 Type=simple
 
+# Wait user login
+ExecStartPre=/bin/bash -c 'while [[ ! $(who) ]]; do sleep 1; done'
 # add -v option for verbose mode
 ExecStart=/usr/local/bin/nkb -d 4
 
